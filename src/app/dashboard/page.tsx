@@ -8,8 +8,13 @@ import {
 } from "@/services/mockData";
 import { IngestionPanel } from "@/components/IngestionPanel";
 import { DiagnosticPanel } from "@/components/DiagnosticPanel";
+import { TabBar, type TabValue } from "@/components/TabBar";
+import { LabDissectionView } from "@/components/LabDissectionView";
 
 export default function DashboardPage() {
+  // ── Tab state ──
+  const [activeTab, setActiveTab] = useState<TabValue>("dashboard");
+
   // ── Input state ──
   const [cdsXml, setCdsXml] = useState(MOCK_CDS_XML);
   const [todaysNote, setTodaysNote] = useState(MOCK_TODAYS_NOTE);
@@ -59,28 +64,38 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-3rem)] grid grid-cols-1 lg:grid-cols-[30%_70%]">
-      {/* ── Left Column: EMR Ingestion Engine ── */}
-      <aside className="border-r border-slate-200 bg-slate-50 overflow-y-auto clinical-scroll">
-        <IngestionPanel
-          cdsXml={cdsXml}
-          setCdsXml={setCdsXml}
-          todaysNote={todaysNote}
-          setTodaysNote={setTodaysNote}
-          consentChecked={consentChecked}
-          setConsentChecked={setConsentChecked}
-          onParse={handleParse}
-          isProcessing={isProcessing}
-        />
-      </aside>
+    <div className="flex flex-col min-h-[calc(100vh-3rem)]">
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {activeTab === "dashboard" ? (
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[30%_70%] min-h-0">
+          {/* ── Left Column: EMR Ingestion Engine ── */}
+          <aside className="border-r border-slate-200 bg-slate-50 overflow-y-auto clinical-scroll">
+            <IngestionPanel
+              cdsXml={cdsXml}
+              setCdsXml={setCdsXml}
+              todaysNote={todaysNote}
+              setTodaysNote={setTodaysNote}
+              consentChecked={consentChecked}
+              setConsentChecked={setConsentChecked}
+              onParse={handleParse}
+              isProcessing={isProcessing}
+            />
+          </aside>
 
-      {/* ── Right Column: Diagnostic Knowledge Graph ── */}
-      <section className="bg-slate-50 overflow-y-auto clinical-scroll">
-        <DiagnosticPanel
-          synthesisResult={synthesisResult}
-          onSignFinalize={handleSignFinalize}
-        />
-      </section>
+          {/* ── Right Column: Diagnostic Knowledge Graph ── */}
+          <section className="bg-slate-50 overflow-y-auto clinical-scroll">
+            <DiagnosticPanel
+              synthesisResult={synthesisResult}
+              onSignFinalize={handleSignFinalize}
+            />
+          </section>
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <LabDissectionView />
+        </div>
+      )}
     </div>
   );
 }

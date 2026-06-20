@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Activity, User, AlertTriangle, Lock } from "lucide-react";
 import type { SynthesisResponse } from "@/services/mockData";
 import { SystemCard } from "./SystemCard";
+import { EMRSyncPanel } from "./EMRSyncPanel";
 import { ReferralModal } from "./ReferralModal";
 
 interface DiagnosticPanelProps {
@@ -91,7 +92,7 @@ export function DiagnosticPanel({
       </div>
 
       {/* Systems Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
         {bodilySystems.map((system, index) => (
           <SystemCard
             key={system.id}
@@ -105,6 +106,9 @@ export function DiagnosticPanel({
           />
         ))}
       </div>
+
+      {/* ── EMR Sync Assistant ── */}
+      <EMRSyncPanel progressNote={synthesisResult.emrProgressNote} />
 
       {/* Sign & Finalize */}
       <button

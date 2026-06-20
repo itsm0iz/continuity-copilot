@@ -236,6 +236,7 @@ export interface SynthesisResponse {
   clinicalAlert: ClinicalAlert;
   bodilySystems: BodySystem[];
   referralDraft: ReferralDraft;
+  emrProgressNote: string;
 }
 
 export const MOCK_SYNTHESIS_RESPONSE: SynthesisResponse = {
@@ -450,36 +451,46 @@ export const MOCK_SYNTHESIS_RESPONSE: SynthesisResponse = {
     specialty: "Cardiology",
     recipientTitle: "Attending Cardiologist",
     patientName: "James McAllister",
-    body: `Dear Colleague,
+    body: `DATE: ${new Date().toISOString().split("T")[0]}
+TO: Specialist Intake Coordinator
+FROM: Attending Family Physician
+RE: Patient Clinical Referral & Continuity Summary
 
-I am writing to refer Mr. James McAllister (DOB: 1958-03-12, OHIP: 9281-442-817) for urgent cardiology consultation regarding recurrent chest pain in the context of known coronary artery disease.
+Dear Colleague,
 
-CLINICAL HISTORY:
-Mr. McAllister underwent percutaneous coronary intervention (PCI) with drug-eluting stent placement to the left anterior descending (LAD) artery on July 15, 2019, at Sunnybrook Health Sciences Centre. The indication was an 85% coronary artery blockage identified on diagnostic angiography. Post-procedure recovery was uneventful, and he completed cardiac rehabilitation in December 2019. His most recent stress echocardiogram (June 2020) demonstrated normal findings with an ejection fraction of 58% and no anginal symptoms.
+I am writing to formally refer this patient for specialized consultation regarding their Cardiovascular presentation. 
 
-CURRENT PRESENTATION:
-Mr. McAllister presents today (${new Date().toISOString().split("T")[0]}) with acute substernal chest pain rated 3/10, non-radiating, worsening with deep inspiration, accompanied by shortness of breath for 12 hours. Vitals: BP 134/86, HR 88, SpO2 96%.
+CLINICAL TIMELINE SUMMARY:
+• 2019-07-15: PCI with drug-eluting stent to LAD — 85% blockage (Sunnybrook HSC)
+• 2019-12: Cardiac rehabilitation completed
+• 2020-06: Stress echo normal, EF 58%
+• [Today]: Substernal chest pain 3/10, SOB x12h, BP 134/86
 
-CURRENT MEDICATIONS:
-• Atorvastatin 40mg daily
-• Acetylsalicylic Acid 81mg daily
-• Enalapril 10mg daily
+ACTIVE MEDICATIONS & RELEVANT LABS:
+• Atorvastatin 40mg daily (statin therapy)
+• ASA 81mg daily (antiplatelet post-stent)
+• Enalapril 10mg daily (antihypertensive)
+• Last A1C: 7.1% (comorbid T2DM)
 
-RELEVANT COMORBIDITIES:
-• Type 2 Diabetes Mellitus (A1C 7.1%)
-• Essential Hypertension (Stage 1, controlled)
+ALLERGY ALERT: Amoxicillin (hives, throat swelling)
 
-ALLERGY: Amoxicillin (hives, throat swelling)
-
-CLINICAL CONCERN:
-Given his significant cardiac history, I am concerned about potential in-stent restenosis, new coronary lesion, or acute coronary syndrome. I would appreciate your expert assessment including ECG review, troponin panel, and consideration for repeat coronary angiography if clinically indicated.
-
-Thank you for your timely attention to this referral.
+Thank you for your collaborative support in evaluating this case.
 
 Sincerely,
-[Attending Family Physician]
-[Clinic Name & Address]
-[CPSO #]`,
+[Attending MD Sign-off Line]`,
     auditLine: `Audit Trail: Electronic signature verified by Attending MD at ${new Date().toISOString()}. CNO-Compliant record. Document generated with AI-assisted clinical decision support — reviewed and approved by physician prior to transmission.`,
   },
+  emrProgressNote: `SUBJECTIVE:
+67M presents with acute substernal chest pain (3/10), SOB x12h, dry cough, nasal congestion.
+
+OBJECTIVE:
+BP 134/86, HR 88, SpO2 96%, Temp 37.1°C. Lungs: scattered rhonchi bilaterally.
+
+ASSESSMENT:
+1. Acute chest pain — DDx: ACS/in-stent restenosis vs pleuritic vs viral.
+2. Upper respiratory infection — likely viral.
+
+PLAN:
+1. STAT ECG + serial troponins q6h.
+2. Monitor SpO2 and vitals.`,
 };

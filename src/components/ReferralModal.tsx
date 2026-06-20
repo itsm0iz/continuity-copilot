@@ -59,7 +59,7 @@ export function ReferralModal({ referralDraft, onClose }: ReferralModalProps) {
             </button>
           </div>
           <p className="text-sm text-slate-500 mb-3">
-            AI-generated draft — review and edit before sending
+            Professional Canadian clinical correspondence template
           </p>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
