@@ -48,7 +48,7 @@ export function ReferralModal({ referralDraft, onClose }: ReferralModalProps) {
                 <Heart className="w-5 h-5 text-red-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-800">
-                Targeted Cardiology Referral
+                Targeted {referralDraft.specialty} Referral
               </h2>
             </div>
             <button
@@ -59,14 +59,13 @@ export function ReferralModal({ referralDraft, onClose }: ReferralModalProps) {
             </button>
           </div>
           <p className="text-sm text-slate-500 mb-3">
-            Professional Canadian clinical correspondence template
+            Generated draft — review, edit, and triage before use
           </p>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
             <p className="text-xs text-amber-800">
-              This referral references only Cardiovascular system data.
-              Unrelated findings (respiratory/flu) have been intentionally
-              omitted for clinical precision.
+              This draft contains extracted session data and may be incomplete.
+              Compare every statement with the source record before copying it.
             </p>
           </div>
         </div>
@@ -106,9 +105,8 @@ export function ReferralModal({ referralDraft, onClose }: ReferralModalProps) {
               )}
             </button>
           </div>
-          <p className="text-[11px] text-slate-400 italic border-t border-slate-100 pt-3">
-            Audit Trail: Electronic signature verified by Attending MD at{" "}
-            {new Date().toISOString()}. CNO-Compliant record.
+          <p className="border-t border-slate-100 pt-3 text-[11px] italic text-slate-400">
+            {referralDraft.auditLine}
           </p>
         </div>
       </div>

@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Continuity Copilot — Clinical Decision Support",
+  title: "ClinWeave — Clinical Decision Support",
   description:
-    "AI-assisted clinical decision-support dashboard for Ontario Family Physicians. Ingests OntarioMD CDS XML exports and free-hand notes to surface critical diagnostic links.",
+    "Clinical decision-support for Ontario family physicians that connects longitudinal EMR history with today's encounter notes to surface relevant patterns, risks, and clinical context.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} bg-slate-50 text-slate-900 min-h-screen`}>
+      <body
+        suppressHydrationWarning
+        className={`${inter.className} min-h-screen bg-[#f8fbf9] text-[#243a32]`}
+      >
         <ComplianceBanner />
         <main className="pt-12">
           {children}

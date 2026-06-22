@@ -1,24 +1,27 @@
-# Continuity Copilot
+# ClinWeave
 
-Continuity Copilot is a clinical decision-support prototype for Ontario family physicians. It brings a patient's longitudinal EMR history together with today's free-hand encounter note to surface cross-record risks that can be easy to miss during a time-constrained visit.
+ClinWeave is a clinical decision-support prototype for Ontario family physicians. It connects a patient’s longitudinal EMR history with today’s encounter notes, helping clinicians identify relevant patterns, potential risks, and important context that might otherwise be missed during a time-constrained visit.
 
-The demo accepts OntarioMD-style Core Data Set (CDS) XML and a current clinical note, then presents:
+The prototype accepts OntarioMD-style Core Data Set (CDS) XML and a current clinical note, then presents:
 
 - a high-priority clinical alert based on current and historical findings;
 - findings organized by body system, with their source clearly identified;
 - historical timelines and relevant medications; and
-- an editable, targeted cardiology referral that can be copied for review.
+- an editable, targeted referral that can be copied for review; and
+- a separate lab-report workspace with clinician and patient-facing explanations.
 
 The included scenario connects a patient's new chest pain and shortness of breath with a history of coronary artery disease and LAD stent placement.
 
-## Demo workflow
+## Clinical workflow
 
-1. Review or replace the preloaded synthetic CDS XML and encounter note.
-2. Confirm that the inputs contain synthetic data only.
-3. Select **Parse Patient History & Synthesize**.
-4. Review the clinical alert and body-system knowledge graph.
+1. Import or edit the synthetic CDS XML and today&apos;s encounter note on the intake screen.
+2. Confirm that the session uses synthetic or properly de-identified data.
+3. Select **Continue to clinical review**.
+4. Review the source-labelled clinical alert and body-system findings.
 5. Open, edit, and copy the targeted referral draft if appropriate.
-6. Select **Sign & Finalize** to clear the data from the interface.
+6. Use the back button or **End session** action to clear the current browser view and return to intake.
+
+The header also opens **Lab Report Dissection**, where reports in `Marker: value (flag)` format are separated into source-flagged and unflagged results.
 
 ## Run locally
 
@@ -45,34 +48,32 @@ npm run build  # create a production build
 npm run start  # serve the production build
 ```
 
-## Synthesis modes
+## Input processing
 
-The project runs in deterministic mock mode by default. `POST /api/synthesize` checks that both inputs are present, simulates a short processing delay, and returns the fixture in `src/services/mockData.ts`. This makes the complete UI usable without credentials, but it does **not** parse or synthesize arbitrary input while mock mode is enabled.
+The application no longer returns a fixed result. `POST /api/synthesize` parses patient demographics and categorized entries from the supplied XML, then classifies sentences from the current note into relevant clinical systems. Changing the note changes the returned findings. A small set of explicit cross-record rules can raise review alerts, such as connecting current chest symptoms with prior coronary history.
 
-A Gemini-backed implementation is also present in `src/app/api/synthesize/route.ts`. To experiment with it locally:
+`POST /api/lab-dissect` parses the supplied report one line at a time and preserves explicit laboratory flags. It does not infer reference ranges when the source report does not provide a flag.
 
-1. Set `USE_LIVE_AI` to `true` in that route.
-2. Create `.env.local`:
+Processing is deterministic and server-side; it does not require an API key or send inputs to a model provider. The included sample data remains available as an editable starting point.
 
-   ```bash
-   GEMINI_API_KEY=your_api_key
-   ```
-
-3. Restart the development server.
-
-Live mode sends the supplied XML and note to the configured Gemini API. Use synthetic data only.
+This extraction layer is designed for prototype evaluation. It is not a complete CDA/CDS parser, terminology service, or clinically validated decision engine.
 
 ## Project structure
 
 ```text
 src/
 ├── app/
-│   ├── api/synthesize/route.ts  # mock and optional Gemini synthesis endpoint
+│   ├── api/synthesize/route.ts  # dynamic clinical synthesis endpoint
+│   ├── api/lab-dissect/route.ts # dynamic lab-report endpoint
 │   ├── dashboard/page.tsx       # dashboard state and workflow
 │   ├── layout.tsx               # application shell and metadata
 │   └── page.tsx                 # redirect to the dashboard
-├── components/                  # ingestion, results, system cards, and referral UI
-└── services/mockData.ts         # synthetic inputs, response fixture, and shared types
+├── components/                  # intake, results, labs, navigation, and safety UI
+└── services/
+    ├── clinicalSynthesis.ts     # server-only XML and note extraction
+    ├── labAnalysis.ts           # server-only lab text parsing
+    ├── mockData.ts              # synthetic clinical input and shared types
+    └── mockLabData.ts           # synthetic lab input and shared types
 ```
 
 ## Technology
@@ -84,8 +85,8 @@ src/
 
 ## Safety and scope
 
-This repository is a hackathon/demo prototype, not a medical device or production clinical system. It must not be used to diagnose or treat patients, and all AI-generated content requires clinician review.
+This repository is a hackathon/prototype system, not a medical device or production clinical system. It must not be used to diagnose or treat patients, and all extracted or generated content requires clinician review.
 
-The interface is intentionally labelled for synthetic data. The current application has no authentication, database, durable audit store, EMR integration, or production security controls. UI copy referring to PHIPA, Bill 88, CNO compliance, electronic signatures, or zero retention is demonstrative and should not be treated as a verified legal or regulatory claim.
+The interface is intentionally labelled for synthetic or properly de-identified data. The current application has no authentication, database, durable audit store, EMR integration, or production security controls. Clearing a session removes React state from the current browser view; it is not a verified infrastructure-wide retention guarantee.
 
-Do not enter real personal health information. In live mode, inputs leave the application and are sent to an external model provider.
+Do not enter real personal health information.

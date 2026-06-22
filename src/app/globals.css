@@ -1,15 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc; /* slate-50 */
-  --foreground: #0f172a; /* slate-900 */
+  --background: #f8fbf9;
+  --foreground: #243a32;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 
   /* Custom animations */
   --animate-fade-in-up: fade-in-up 0.5s ease-out both;
@@ -20,7 +19,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+button,
+label,
+input[type="checkbox"] {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Keyframes ── */
@@ -63,11 +68,45 @@ body {
   }
 }
 
+@keyframes intake-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -14px, 0) scale(1.04);
+  }
+}
+
 /* ── Utility Classes ── */
 
 .clinical-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #bfd0c8 transparent;
 }
 .clinical-scroll::-webkit-scrollbar {
   width: 6px;
@@ -76,14 +115,14 @@ body {
   background: transparent;
 }
 .clinical-scroll::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: #bfd0c8;
   border-radius: 3px;
 }
 
 .consent-checkbox {
   width: 18px;
   height: 18px;
-  accent-color: #2563eb;
+  accent-color: #557d6e;
   cursor: pointer;
   border-radius: 4px;
 }
@@ -96,4 +135,74 @@ body {
   border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
+}
+
+.intake-canvas {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(221, 240, 231, 0.82), transparent 31%),
+    radial-gradient(circle at 86% 15%, rgba(236, 229, 247, 0.78), transparent 30%),
+    linear-gradient(180deg, #fbfdfb 0%, #f7faf8 58%, #faf8f6 100%);
+}
+
+.pastel-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(3px);
+  opacity: 0.48;
+  animation: orb-drift 9s ease-in-out infinite;
+}
+
+.pastel-orb-one {
+  left: -9rem;
+  top: 14rem;
+  width: 24rem;
+  height: 24rem;
+  background: #dcefe6;
+}
+
+.pastel-orb-two {
+  right: -8rem;
+  top: 7rem;
+  width: 21rem;
+  height: 21rem;
+  background: #ebe4f5;
+  animation-delay: -4s;
+}
+
+.intake-reveal {
+  opacity: 0;
+  animation: intake-reveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.intake-delay-1 {
+  animation-delay: 80ms;
+}
+
+.intake-delay-2 {
+  animation-delay: 180ms;
+}
+
+.intake-delay-3 {
+  animation-delay: 280ms;
+}
+
+.intake-delay-4 {
+  animation-delay: 400ms;
+}
+
+.workspace-enter {
+  animation: workspace-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,101 +1,128 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import { ClinicalIntake } from "@/components/ClinicalIntake";
+import { DataTerminationDialog } from "@/components/DataTerminationDialog";
+import { DiagnosticPanel } from "@/components/DiagnosticPanel";
+import { LabDissectionView } from "@/components/LabDissectionView";
+import type { TabValue } from "@/components/TabBar";
+import { WorkspaceHeader } from "@/components/WorkspaceHeader";
 import {
   MOCK_CDS_XML,
   MOCK_TODAYS_NOTE,
   type SynthesisResponse,
 } from "@/services/mockData";
-import { IngestionPanel } from "@/components/IngestionPanel";
-import { DiagnosticPanel } from "@/components/DiagnosticPanel";
-import { TabBar, type TabValue } from "@/components/TabBar";
-import { LabDissectionView } from "@/components/LabDissectionView";
+
+type Stage = "intake" | "workspace";
 
 export default function DashboardPage() {
-  // ── Tab state ──
+  const [stage, setStage] = useState<Stage>("intake");
   const [activeTab, setActiveTab] = useState<TabValue>("dashboard");
-
-  // ── Input state ──
   const [cdsXml, setCdsXml] = useState(MOCK_CDS_XML);
   const [todaysNote, setTodaysNote] = useState(MOCK_TODAYS_NOTE);
   const [consentChecked, setConsentChecked] = useState(false);
-
-  // ── Processing state ──
   const [isProcessing, setIsProcessing] = useState(false);
   const [synthesisResult, setSynthesisResult] =
     useState<SynthesisResponse | null>(null);
+  const [showTerminationDialog, setShowTerminationDialog] = useState(false);
+  const [sessionKey, setSessionKey] = useState(0);
 
-  // ── Parse handler — calls server-side API route ──
   const handleParse = useCallback(async () => {
-    if (!consentChecked || isProcessing) return;
+    if (!consentChecked || isProcessing || !cdsXml.trim() || !todaysNote.trim()) {
+      return;
+    }
 
     setIsProcessing(true);
     try {
-      const res = await fetch("/api/synthesize", {
+      const response = await fetch("/api/synthesize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cdsXml, todaysNote }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        console.error("Synthesis error:", err);
-        alert(`Synthesis failed: ${err.error || res.statusText}`);
-        return;
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to build the clinical view.");
       }
 
-      const data: SynthesisResponse = await res.json();
-      setSynthesisResult(data);
+      setSynthesisResult(payload as SynthesisResponse);
+      setActiveTab("dashboard");
+      setStage("workspace");
     } catch (error) {
-      console.error("Network error:", error);
-      alert("Network error — unable to reach the synthesis API.");
+      console.error("Synthesis error:", error);
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Unable to build the clinical view.",
+      );
     } finally {
       setIsProcessing(false);
     }
-  }, [cdsXml, todaysNote, consentChecked, isProcessing]);
+  }, [cdsXml, consentChecked, isProcessing, todaysNote]);
 
-  // ── State wipe on Sign & Finalize ──
-  const handleSignFinalize = useCallback(() => {
+  const openClinicalDashboard = useCallback(() => {
+    setActiveTab("dashboard");
+    setStage(synthesisResult ? "workspace" : "intake");
+  }, [synthesisResult]);
+
+  const openLabDissection = useCallback(() => {
+    setActiveTab("lab-dissection");
+    setStage("workspace");
+  }, []);
+
+  const clearSession = useCallback(() => {
     setCdsXml("");
     setTodaysNote("");
     setConsentChecked(false);
     setSynthesisResult(null);
     setIsProcessing(false);
+    setActiveTab("dashboard");
+    setStage("intake");
+    setSessionKey((value) => value + 1);
+    setShowTerminationDialog(false);
   }, []);
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-3rem)]">
-      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      {activeTab === "dashboard" ? (
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[30%_70%] min-h-0">
-          {/* ── Left Column: EMR Ingestion Engine ── */}
-          <aside className="border-r border-slate-200 bg-slate-50 overflow-y-auto clinical-scroll">
-            <IngestionPanel
-              cdsXml={cdsXml}
-              setCdsXml={setCdsXml}
-              todaysNote={todaysNote}
-              setTodaysNote={setTodaysNote}
-              consentChecked={consentChecked}
-              setConsentChecked={setConsentChecked}
-              onParse={handleParse}
-              isProcessing={isProcessing}
-            />
-          </aside>
+    <div className="min-h-screen bg-[#f8fbf9] text-[#243a32]">
+      <WorkspaceHeader
+        activeTab={activeTab}
+        showBack={stage === "workspace"}
+        onClinicalDashboard={openClinicalDashboard}
+        onLabDissection={openLabDissection}
+        onBack={() => setShowTerminationDialog(true)}
+      />
 
-          {/* ── Right Column: Diagnostic Knowledge Graph ── */}
-          <section className="bg-slate-50 overflow-y-auto clinical-scroll">
+      {stage === "intake" ? (
+        <ClinicalIntake
+          cdsXml={cdsXml}
+          setCdsXml={setCdsXml}
+          todaysNote={todaysNote}
+          setTodaysNote={setTodaysNote}
+          consentChecked={consentChecked}
+          setConsentChecked={setConsentChecked}
+          isProcessing={isProcessing}
+          onProceed={handleParse}
+        />
+      ) : activeTab === "dashboard" ? (
+        <main className="workspace-enter min-h-[calc(100vh-7rem)] bg-[#f7faf8] px-4 py-7 sm:px-7">
+          <div className="mx-auto max-w-[1500px]">
             <DiagnosticPanel
               synthesisResult={synthesisResult}
-              onSignFinalize={handleSignFinalize}
+              onSignFinalize={() => setShowTerminationDialog(true)}
             />
-          </section>
-        </div>
+          </div>
+        </main>
       ) : (
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <LabDissectionView />
-        </div>
+        <main className="workspace-enter min-h-[calc(100vh-7rem)] bg-[#faf8fc]">
+          <LabDissectionView key={sessionKey} />
+        </main>
       )}
+
+      <DataTerminationDialog
+        open={showTerminationDialog}
+        onCancel={() => setShowTerminationDialog(false)}
+        onConfirm={clearSession}
+      />
     </div>
   );
 }

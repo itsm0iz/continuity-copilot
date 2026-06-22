@@ -1,8 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Loader2, Printer, AlertTriangle, CheckCircle, ShieldAlert, FlaskConical, FileText } from "lucide-react";
-import { MOCK_LAB_INPUT, type LabAnalysisResponse, type LabInsight } from "@/services/mockLabData";
+import { useCallback, useState } from "react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle,
+  FileText,
+  FlaskConical,
+  Loader2,
+  Printer,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
+import {
+  MOCK_LAB_INPUT,
+  type LabAnalysisResponse,
+  type LabInsight,
+} from "@/services/mockLabData";
 
 export function LabDissectionView() {
   const [labText, setLabText] = useState(MOCK_LAB_INPUT);
@@ -15,203 +29,202 @@ export function LabDissectionView() {
 
     setIsProcessing(true);
     try {
-      const res = await fetch("/api/lab-dissect", {
+      const response = await fetch("/api/lab-dissect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ labText }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to analyze labs");
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to analyze this report.");
       }
-
-      const data: LabAnalysisResponse = await res.json();
-      setResult(data);
+      setResult(payload as LabAnalysisResponse);
     } catch (error) {
       console.error(error);
-      alert("Error analyzing lab report.");
+      window.alert(
+        error instanceof Error ? error.message : "Unable to analyze this report.",
+      );
     } finally {
       setIsProcessing(false);
     }
   }, [consentChecked, isProcessing, labText]);
 
-  const handlePrint = () => {
-    window.print();
+  const renderBadge = (flag: LabInsight["flag"]) => {
+    if (flag.startsWith("CRITICAL")) {
+      return <span className="rounded-full border border-[#efc5c1] bg-[#fff0ee] px-2.5 py-1 text-[11px] font-bold text-[#91483f]">{flag}</span>;
+    }
+    if (flag === "HIGH" || flag === "ELEVATED") {
+      return <span className="rounded-full border border-[#ead7ae] bg-[#fff8e8] px-2.5 py-1 text-[11px] font-bold text-[#80612e]">{flag}</span>;
+    }
+    if (flag === "LOW") {
+      return <span className="rounded-full border border-[#cbdce9] bg-[#eff6fb] px-2.5 py-1 text-[11px] font-bold text-[#4f708a]">LOW</span>;
+    }
+    return <span className="rounded-full border border-[#cfe2d9] bg-[#edf7f2] px-2.5 py-1 text-[11px] font-bold text-[#4b735f]">{flag}</span>;
   };
 
-  const renderBadge = (flag: string) => {
-    switch (flag) {
-      case "CRITICAL HIGH":
-        return <span className="px-2 py-1 text-xs font-bold rounded bg-red-100 text-red-800 border border-red-200">CRITICAL HIGH</span>;
-      case "HIGH":
-      case "ELEVATED":
-        return <span className="px-2 py-1 text-xs font-bold rounded bg-amber-100 text-amber-800 border border-amber-200">{flag}</span>;
-      case "LOW":
-        return <span className="px-2 py-1 text-xs font-bold rounded bg-blue-100 text-blue-800 border border-blue-200">LOW</span>;
-      default:
-        return <span className="px-2 py-1 text-xs font-bold rounded bg-green-100 text-green-800 border border-green-200">NORMAL</span>;
-    }
-  };
+  const insightCard = (insight: LabInsight, index: number) => (
+    <div key={`${insight.marker}-${index}`} className="rounded-2xl border border-[#e2e8e5] bg-[#fbfdfc] p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <span className="font-semibold text-[#30473f]">{insight.marker}</span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm text-[#657870]">{insight.value}</span>
+          {renderBadge(insight.flag)}
+        </div>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-[#687a73]">{insight.clinicianNote}</p>
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[35%_65%] min-h-[calc(100vh-80px)]">
-      {/* ── Left Column: Input ── */}
-      <aside className="border-r border-slate-200 bg-slate-50 p-6 flex flex-col gap-6 overflow-y-auto clinical-scroll">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 mb-2">Laboratory Data Ingestion</h2>
-          <p className="text-sm text-slate-600 mb-4">
-            Paste raw laboratory values, PDF text dumps, or diagnostic reports here for AI dissection.
+    <div className="grid min-h-[calc(100vh-7rem)] grid-cols-1 lg:grid-cols-[38%_62%]">
+      <aside className="clinical-scroll overflow-y-auto border-b border-[#e2ddec] bg-[#f7f3fa] p-5 sm:p-7 lg:border-b-0 lg:border-r">
+        <div className="mx-auto max-w-xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#ddd4e9] bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#77678f]">
+            <Sparkles className="h-3.5 w-3.5" />
+            Report translator
+          </div>
+          <h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#443b55]">
+            Lab report dissection
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#746d7e]">
+            Paste one result per line. The analyzer preserves the laboratory&apos;s
+            supplied flags and creates clinician and patient-facing explanations.
           </p>
-          <textarea
-            className="w-full h-64 p-3 border border-slate-300 rounded-lg text-sm font-mono text-slate-800 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
-            value={labText}
-            onChange={(e) => setLabText(e.target.value)}
-            placeholder="Paste lab text here..."
-          />
-        </div>
 
-        {/* Action Area */}
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm space-y-4">
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div className="pt-0.5">
-              <input
-                type="checkbox"
-                checked={consentChecked}
-                onChange={(e) => setConsentChecked(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-              />
-            </div>
-            <div className="text-sm text-slate-600 leading-tight">
-              I confirm I have patient consent to process these laboratory values through the Continuity Copilot translation service.
-            </div>
-          </label>
+          <div className="mt-7 rounded-[24px] border border-[#e1daea] bg-white/90 p-5 shadow-[0_20px_55px_-40px_rgba(78,62,105,0.55)]">
+            <label htmlFor="lab-report" className="mb-2 flex items-center justify-between text-sm font-semibold text-[#51475f]">
+              Laboratory report text
+              <span className="text-xs font-normal text-[#948a9e]">Required</span>
+            </label>
+            <p className="mb-3 text-xs leading-5 text-[#877e90]">
+              Recommended format: <code>Marker: value (HIGH)</code>
+            </p>
+            <textarea
+              id="lab-report"
+              className="clinical-scroll h-72 w-full resize-none rounded-2xl border border-[#e1dbe7] bg-[#fdfcfe] p-4 font-mono text-sm leading-6 text-[#514961] outline-none transition focus:border-[#aa9bc0] focus:ring-4 focus:ring-[#eee9f5]"
+              value={labText}
+              onChange={(event) => {
+                setLabText(event.target.value);
+                setResult(null);
+              }}
+              placeholder="LDL CHOLESTEROL: 4.3 mmol/L (HIGH)"
+            />
+          </div>
 
-          <button
-            onClick={handleAnalyze}
-            disabled={!consentChecked || isProcessing || !labText.trim()}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-medium py-2.5 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Analyzing Labs...
-              </>
-            ) : (
-              "Analyze Lab Results"
-            )}
-          </button>
+          <div className="mt-5 rounded-[24px] border border-[#e8ddd5] bg-[#fffaf7] p-5">
+            <label htmlFor="lab-consent" className="flex cursor-pointer items-start gap-3">
+              <span className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
+                <input
+                  id="lab-consent"
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(event) => setConsentChecked(event.target.checked)}
+                  className="peer h-5 w-5 appearance-none rounded-md border-2 border-[#c9bcb3] bg-white checked:border-[#78698e] checked:bg-[#78698e] focus:outline-none focus:ring-4 focus:ring-[#eee9f5]"
+                />
+                <Check className="pointer-events-none absolute h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100" />
+              </span>
+              <span className="text-sm leading-6 text-[#736b65]">
+                I confirm this prototype session uses synthetic or properly
+                de-identified laboratory data and requires clinician review.
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={!consentChecked || isProcessing || !labText.trim()}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#6e6086] px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(78,62,105,0.8)] transition hover:-translate-y-0.5 hover:bg-[#5e5273] disabled:cursor-not-allowed disabled:bg-[#c7c0cf] disabled:shadow-none"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Reading report…
+                </>
+              ) : (
+                <>
+                  <FlaskConical className="h-4 w-4" />
+                  Analyze lab results
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Right Column: Results ── */}
-      <section className="bg-slate-50 p-6 overflow-y-auto clinical-scroll print:p-0 print:bg-white">
+      <section className="clinical-scroll overflow-y-auto bg-[#fbfafc] p-5 print:bg-white print:p-0 sm:p-7">
         {!result ? (
-          <div className="h-full flex items-center justify-center text-slate-400 print:hidden">
-            <div className="text-center">
-              <FlaskConical className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>Enter lab data and click analyze to view dissection.</p>
+          <div className="flex min-h-[520px] items-center justify-center text-center print:hidden">
+            <div className="max-w-sm">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[#eee9f5] text-[#89799e]">
+                <FlaskConical className="h-7 w-7" />
+              </div>
+              <h2 className="mt-5 text-lg font-semibold text-[#554b63]">Ready when the report is</h2>
+              <p className="mt-2 text-sm leading-6 text-[#8a8191]">
+                Results will appear here with their original flags, a clinical review note, and a plain-language explanation.
+              </p>
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto space-y-6">
-            
-            {/* Clinician Insights Card (Not printed) */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden print:hidden">
-              <div className="bg-slate-100 border-b border-slate-200 px-5 py-3 flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-slate-700" />
-                <h3 className="font-bold text-slate-900">Clinician Insights</h3>
+          <div className="mx-auto max-w-4xl space-y-6">
+            <div className="overflow-hidden rounded-[24px] border border-[#e0e7e3] bg-white shadow-[0_22px_60px_-44px_rgba(52,74,65,0.6)] print:hidden">
+              <div className="flex items-center gap-2 border-b border-[#e0e8e4] bg-[#eff6f3] px-5 py-4">
+                <ShieldAlert className="h-5 w-5 text-[#547466]" />
+                <h2 className="font-semibold text-[#30473f]">Clinician review</h2>
               </div>
-              <div className="p-5 space-y-6">
+              <div className="space-y-7 p-5">
                 {result.urgentConcerns.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" />
-                      Urgent / Abnormal Flags
-                    </h4>
-                    <div className="space-y-3">
-                      {result.urgentConcerns.map((insight, idx) => (
-                        <div key={idx} className="border border-slate-100 rounded-lg p-3 bg-slate-50 flex flex-col gap-2">
-                          <div className="flex justify-between items-start">
-                            <span className="font-semibold text-slate-900">{insight.marker}</span>
-                            <div className="flex items-center gap-3">
-                              <span className="font-mono text-sm text-slate-600">{insight.value}</span>
-                              {renderBadge(insight.flag)}
-                            </div>
-                          </div>
-                          <p className="text-sm text-slate-700">{insight.clinicianNote}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.13em] text-[#985247]">
+                      <AlertTriangle className="h-4 w-4" />
+                      Flagged by source report
+                    </h3>
+                    <div className="space-y-3">{result.urgentConcerns.map(insightCard)}</div>
                   </div>
                 )}
-
                 {result.stableMetrics.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-bold text-green-700 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      Stable / Normal Metrics
-                    </h4>
-                    <div className="space-y-3">
-                      {result.stableMetrics.map((insight, idx) => (
-                        <div key={idx} className="border border-slate-100 rounded-lg p-3 bg-slate-50 flex flex-col gap-2">
-                          <div className="flex justify-between items-start">
-                            <span className="font-semibold text-slate-900">{insight.marker}</span>
-                            <div className="flex items-center gap-3">
-                              <span className="font-mono text-sm text-slate-600">{insight.value}</span>
-                              {renderBadge(insight.flag)}
-                            </div>
-                          </div>
-                          <p className="text-sm text-slate-700">{insight.clinicianNote}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.13em] text-[#547563]">
+                      <CheckCircle className="h-4 w-4" />
+                      Not flagged by source report
+                    </h3>
+                    <div className="space-y-3">{result.stableMetrics.map(insightCard)}</div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Patient-Facing Explainer Card (Printed) */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
-              <div className="bg-blue-50 border-b border-blue-100 px-5 py-4 flex items-center justify-between print:bg-transparent print:border-b-2 print:border-slate-800">
+            <div className="overflow-hidden rounded-[24px] border border-[#ded8e8] bg-white shadow-[0_22px_60px_-44px_rgba(76,61,100,0.55)] print:border-none print:shadow-none">
+              <div className="flex items-center justify-between border-b border-[#e5deec] bg-[#f3eff8] px-5 py-4 print:border-b-2 print:border-slate-800 print:bg-transparent">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-700 print:hidden" />
-                  <h3 className="font-bold text-blue-900 text-lg print:text-black">Patient Lab Summary</h3>
+                  <FileText className="h-5 w-5 text-[#74658b] print:hidden" />
+                  <h2 className="text-lg font-semibold text-[#4d435d] print:text-black">Patient lab summary</h2>
                 </div>
                 <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-900 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm print:hidden"
+                  type="button"
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 rounded-xl border border-[#d9d0e4] bg-white px-3 py-2 text-sm font-medium text-[#675979] shadow-sm transition hover:bg-[#faf8fc] print:hidden"
                 >
-                  <Printer className="w-4 h-4" />
-                  Print for Patient
+                  <Printer className="h-4 w-4" />
+                  Print
                 </button>
               </div>
-              
-              <div className="p-6 space-y-6">
-                <p className="text-slate-700 print:text-black">
-                  This summary is designed to help you understand your recent laboratory results. If you have any questions, please discuss them with your doctor.
+              <div className="space-y-6 p-6">
+                <p className="leading-7 text-[#665f6e] print:text-black">
+                  This summary explains the flags supplied with your laboratory report. It does not replace a conversation with your clinician.
                 </p>
-
-                <div className="space-y-5">
-                  {[...result.urgentConcerns, ...result.stableMetrics].map((insight, idx) => (
-                    <div key={idx} className="border-l-4 border-blue-500 pl-4 py-1 print:border-slate-400">
-                      <h4 className="font-bold text-slate-900 text-lg mb-1 print:text-black">
-                        {insight.marker}
-                        <span className="text-slate-500 text-sm font-normal ml-2">({insight.value})</span>
-                      </h4>
-                      <p className="text-slate-700 text-base leading-relaxed print:text-black">
-                        {insight.patientExplainer}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                {[...result.urgentConcerns, ...result.stableMetrics].map((insight, index) => (
+                  <article key={`${insight.marker}-patient-${index}`} className="border-l-4 border-[#a799ba] py-1 pl-4 print:border-slate-400">
+                    <h3 className="text-lg font-semibold text-[#4c4556] print:text-black">
+                      {insight.marker}
+                      <span className="ml-2 text-sm font-normal text-[#8b8392]">({insight.value})</span>
+                    </h3>
+                    <p className="mt-1 leading-7 text-[#6d6675] print:text-black">{insight.patientExplainer}</p>
+                  </article>
+                ))}
               </div>
             </div>
-
           </div>
         )}
       </section>
     </div>
   );
 }
-
-

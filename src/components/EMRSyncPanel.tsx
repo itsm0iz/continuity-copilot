@@ -24,8 +24,8 @@ export function EMRSyncPanel({ progressNote }: EMRSyncPanelProps) {
   if (!progressNote) return null;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">
-      <div className="bg-slate-100 border-b border-slate-200 px-5 py-3 flex items-center justify-between">
+    <div className="mb-6 overflow-hidden rounded-[24px] border border-[#dfe8e4] bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-[#dde9e3] bg-[#edf6f2] px-5 py-3">
         <div className="flex items-center gap-2">
           <ClipboardCopy className="w-5 h-5 text-slate-700" />
           <h3 className="font-bold text-slate-900">EMR Sync Assistant</h3>
@@ -53,7 +53,7 @@ export function EMRSyncPanel({ progressNote }: EMRSyncPanelProps) {
       </div>
       <div className="p-5">
         <p className="text-xs text-slate-500 mb-3">
-          Formatted for direct paste into Accuro, OSCAR, or PS Suite.
+          Review and edit this extracted summary before copying it into any record.
         </p>
         <textarea
           readOnly

@@ -37,17 +37,17 @@ export function SystemCard({
 
   return (
     <div
-      className="animate-fade-in-up bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+      className="animate-fade-in-up overflow-hidden rounded-[24px] border border-[#dfe8e4] bg-white/90 shadow-[0_18px_50px_-40px_rgba(42,68,58,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_55px_-38px_rgba(42,68,58,0.65)]"
       style={{ animationDelay: `${animationDelay || 0}ms` }}
     >
       {/* Colored top accent bar */}
       <div
-        className="h-1.5 w-full"
+        className="h-1 w-full opacity-75"
         style={{ backgroundColor: system.accentColor }}
       />
 
       {/* Header */}
-      <div className="p-5 pb-3 flex items-center gap-3">
+      <div className="flex items-center gap-3 p-5 pb-3">
         <div
           className="w-9 h-9 rounded-lg flex items-center justify-center"
           style={{ backgroundColor: `${system.accentColor}1A` }}
@@ -57,7 +57,7 @@ export function SystemCard({
             style={{ color: system.accentColor }}
           />
         </div>
-        <h3 className="font-bold text-slate-800">{system.name}</h3>
+        <h3 className="font-semibold text-[#2d463d]">{system.name}</h3>
       </div>
 
       {/* Findings */}
@@ -125,7 +125,7 @@ export function SystemCard({
             {system.medications.map((med, i) => (
               <span
                 key={i}
-                className="bg-slate-50 border border-slate-200 text-xs rounded-lg px-2 py-1 text-slate-700"
+                  className="rounded-lg border border-[#e0e8e4] bg-[#f7faf8] px-2 py-1 text-xs text-[#556b63]"
               >
                 {med}
               </span>
@@ -139,7 +139,7 @@ export function SystemCard({
         <div className="px-5 pb-5">
           <button
             onClick={onDraftReferral}
-            className="flex items-center gap-2 text-sm font-semibold bg-red-50 text-red-700 border border-red-200 rounded-lg px-4 py-2.5 hover:bg-red-100 transition-all"
+            className="flex items-center gap-2 rounded-xl border border-[#edcfca] bg-[#fff2ef] px-4 py-2.5 text-sm font-semibold text-[#975449] transition-all hover:bg-[#fce8e3]"
           >
             <FileText className="w-4 h-4" />
             Draft Targeted Referral

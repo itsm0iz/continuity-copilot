@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────────
-// Mock Data Service — Continuity Copilot
+// Mock Data Service — ClinWeave
 // Provides deterministic test fixtures so the UI works without
 // a live Gemini API key.
 // ──────────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ export interface BodySystem {
 }
 
 export interface ClinicalAlert {
-  severity: "high" | "critical";
+  severity: "info" | "high" | "critical";
   title: string;
   message: string;
   relatedSystems: string[];

@@ -8,7 +8,14 @@ eGFR: 82 mL/min/1.73m2 (NORMAL)`;
 export interface LabInsight {
   marker: string;
   value: string;
-  flag: "CRITICAL HIGH" | "HIGH" | "ELEVATED" | "LOW" | "NORMAL";
+  flag:
+    | "CRITICAL HIGH"
+    | "CRITICAL LOW"
+    | "HIGH"
+    | "ELEVATED"
+    | "LOW"
+    | "NORMAL"
+    | "NOT FLAGGED";
   clinicianNote: string;
   patientExplainer: string;
 }
